@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 
 namespace FileSystemWatcherCommon
 {
@@ -10,5 +11,11 @@ namespace FileSystemWatcherCommon
         void OnChanged(object source, FileSystemEventArgs e);
         void OnRenamed(object source, RenamedEventArgs e);
         void OnError(object source, ErrorEventArgs e);
+        string SetFileName(string filePath);
+        Task<string> SetFileNameAsync(string filePath);
+        void MoveFileToErrorDirectory(string filePath);
+        Task MoveFileToErrorDirectoryAsync(string filePath);
+        void MoveFileToOutDirectory(string filePath);
+        Task MoveFileToOutDirectoryAsync(string filePath);
     }
 }

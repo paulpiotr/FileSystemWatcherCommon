@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace FileSystemWatcherCommon
 {
@@ -11,14 +14,6 @@ namespace FileSystemWatcherCommon
     /// </summary>
     public abstract class FileSystemWatcherCommon : IFileSystemWatcherCommon
     {
-        #region private static readonly log4net.ILog log4net
-        /// <summary>
-        /// Log4net Logger
-        /// Log4net Logger
-        /// </summary>
-        private static readonly log4net.ILog log4net = Log4netLogger.Log4netLogger.GetLog4netInstance(MethodBase.GetCurrentMethod().DeclaringType);
-        #endregion
-
         #region public virtual event EventHandler<FileSystemEventArgs> OnCreatedEventHandler;
         /// <summary>
         /// Obsługa zdarzeń dla zdarzenia tworzenia pliku
@@ -86,7 +81,11 @@ namespace FileSystemWatcherCommon
                     fileSystemWatcher.NotifyFilter = notifyFilters;
                     if (null != filter && !string.IsNullOrWhiteSpace(filter))
                     {
-                        fileSystemWatcher.Filter = filter;// "*.txt";
+                        List<string> filterList = NetAppCommon.Helpers.Lists.ListsHelper.GetInstance().ConvertToListOfString(filter, new char[] { ',', ';', '|' });
+                        if (!(null != filterList && filterList.Count > 0))
+                        {
+                            fileSystemWatcher.Filter = filter;
+                        }
                     }
                     fileSystemWatcher.Created += OnCreated;
                     fileSystemWatcher.Changed += OnChanged;
@@ -101,46 +100,243 @@ namespace FileSystemWatcherCommon
                 }
                 else
                 {
-                    log4net.Info($"Directory { path } do not exists!");
+                    throw new Exception($"Directory { path } do not exists!");
                 }
             }
         }
         #endregion
 
+        #region public virtual void OnChanged(object source, FileSystemEventArgs e)
+        /// <summary>
+        /// Uruchom zdarzenie OnChange w obserwowanych katalogu
+        /// Run the OnChange event in the watch directory
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="e"></param>
         public virtual void OnChanged(object source, FileSystemEventArgs e)
         {
             // Specify what is done when a file is changed.
-            log4net.Info($"OnChanged file: {e.FullPath} {e.ChangeType}");
             OnChangedEventHandler?.Invoke(source, e);
         }
+        #endregion
 
+        #region public virtual void OnCreated(object source, FileSystemEventArgs e)
+        /// <summary>
+        /// Uruchom zdarzenie OnCreated w obserwowanych katalogu
+        /// Run the OnCreated event in the watch directory
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="e"></param>
         public virtual void OnCreated(object source, FileSystemEventArgs e)
         {
             // Specify what is done when a file is created.
-            log4net.Info($"OnCreated file: {e.FullPath} {e.ChangeType}");
             OnCreatedEventHandler?.Invoke(source, e);
         }
+        #endregion
 
+        #region public virtual void OnRenamed(object source, RenamedEventArgs e)
+        /// <summary>
+        /// Uruchom zdarzenie OnRenamed w obserwowanych katalogu
+        /// Run the OnRenamed event in the watch directory
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="e"></param>
         public virtual void OnRenamed(object source, RenamedEventArgs e)
         {
             // Specify what is done when a file is renamed.
-            log4net.Info($"OnRenamed file: {e.OldFullPath} renamed to {e.FullPath}");
             OnRenamedEventHandler?.Invoke(source, e);
         }
+        #endregion
 
+        #region public virtual void OnDeleted(object source, FileSystemEventArgs e)
+        /// <summary>
+        /// Uruchom zdarzenie OnDeleted w obserwowanych katalogu
+        /// Run the OnDeleted event in the watch directory
+        /// </summary>
         public virtual void OnDeleted(object source, FileSystemEventArgs e)
         {
             // Specify what is done when a file is changed.
-            log4net.Info($"OnDelete file: {e.FullPath} {e.ChangeType}");
             OnDeletedEventHandler?.Invoke(source, e);
         }
+        #endregion
 
+        #region public virtual void OnError(object source, ErrorEventArgs e)
+        /// <summary>
+        /// Uruchom zdarzenie OnError w obserwowanych katalogu
+        /// Run the OnError event in the watch directory
+        /// </summary>
         public virtual void OnError(object source, ErrorEventArgs e)
         {
             // Specify what is error.
-            log4net.Error($"Error { e.GetException().Message }, { e.GetException().StackTrace }", e.GetException());
             OnErrorEventHandler?.Invoke(source, e);
         }
+        #endregion
+
+        #region public virtual string SetFileName(string filePath)
+        /// <summary>
+        /// Ustaw nową nazwę pliku do przeniesienia do innego katalogu
+        /// Set a new file name to be moved to another directory
+        /// </summary>
+        /// <param name="filePath">
+        /// Ścieżka do pliku jako string
+        /// File path as string
+        /// </param>
+        /// <returns>
+        /// Nowa nazwa pliku jako string lub null
+        /// New filename as string or null
+        /// </returns>
+        public virtual string SetFileName(string filePath)
+        {
+            try
+            {
+                if (null != filePath && !string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
+                {
+                    string fileName = Path.GetFileName(filePath);
+                    if (null != fileName && !string.IsNullOrWhiteSpace(fileName))
+                    {
+                        string pattern = @"\[(.*?)\]\.?";
+                        MatchCollection matchCollection = Regex.Matches(fileName, pattern);
+                        if (null != matchCollection && matchCollection.Count >= 2 && null != matchCollection[0].Value && !string.IsNullOrWhiteSpace(matchCollection[0].Value))
+                        {
+                            fileName = fileName.Replace(matchCollection[0].Value, string.Empty);
+                        }
+                        fileName = Regex.Replace(Regex.Replace(fileName, @"\.+", "."), @"\[+|\]+", string.Empty).Replace(Path.GetExtension(filePath), string.Empty);
+                        return string.Format("[{0}.{1}.{2}.{3}][{4}]{5}", DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second, DateTime.Now.Millisecond, fileName, Path.GetExtension(filePath));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            return null;
+        }
+        #endregion
+
+        #region public virtual async Task<string> SetFileNameAsync(string filePath)
+        /// <summary>
+        /// Ustaw nową nazwę pliku do przeniesienia do innego katalogu asynchronicznie
+        /// Set a new file name to be moved to another directory asynchronously
+        /// </summary>
+        /// <param name="filePath">
+        /// Ścieżka do pliku jako string
+        /// File path as string
+        /// </param>
+        /// <returns>
+        /// Nowa nazwa pliku jako string lub null
+        /// New filename as string or null
+        /// </returns>
+        public virtual async Task<string> SetFileNameAsync(string filePath)
+        {
+            return await Task.Run(() =>
+            {
+                return SetFileName(filePath);
+            });
+        }
+        #endregion
+
+        #region public virtual void MoveFileToErrorDirectory(string filePath)
+        /// <summary>
+        /// Przenieś plik do katalogu z plikami po zarejestrowaniu błędu w migracji
+        /// Move the file to the files directory after logging the migration error
+        /// </summary>
+        /// <param name="filePath">
+        /// Ścieżka do pliku jako string
+        /// File path as string
+        /// </param>
+        public virtual void MoveFileToErrorDirectory(string filePath)
+        {
+            try
+            {
+                if (null != filePath && !string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
+                {
+                    string destFileName = SetFileName(filePath);
+                    string destFilePath = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "error", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), destFileName);
+                    if (!Directory.Exists(Path.GetDirectoryName(destFilePath)))
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(destFilePath));
+                    }
+                    if (!File.Exists(destFilePath))
+                    {
+                        File.Move(filePath, destFilePath);
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                throw e;
+            }
+        }
+        #endregion
+
+        #region public virtual async Task MoveFileToErrorDirectoryAsync(string filePath)
+        /// <summary>
+        /// Przenieś plik do katalogu z plikami po zarejestrowaniu błędu w migracji asynchronicznie
+        /// Move the file to the files directory after logging the migration error asynchronously
+        /// </summary>
+        /// <param name="filePath">
+        /// Ścieżka do pliku jako string
+        /// File path as string
+        /// </param>
+        public virtual async Task MoveFileToErrorDirectoryAsync(string filePath)
+        {
+            await Task.Run(() =>
+            {
+                MoveFileToErrorDirectory(filePath);
+            });
+        }
+        #endregion
+
+        #region public virtual void MoveFileToOutDirectory(string filePath)
+        /// <summary>
+        /// Przenieś plik do katalogu z plikami po poprawnym wykonaniu operacji
+        /// Move the file to the directory with files after the correct operation
+        /// </summary>
+        /// <param name="filePath">
+        /// Ścieżka do pliku jako string
+        /// File path as string
+        /// </param>
+        public virtual void MoveFileToOutDirectory(string filePath)
+        {
+            try
+            {
+                if (null != filePath && !string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
+                {
+                    string destFileName = SetFileName(filePath);
+                    string destFilePath = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "out", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), destFileName);
+                    if (!Directory.Exists(Path.GetDirectoryName(destFilePath)))
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(destFilePath));
+                    }
+                    if (!File.Exists(destFilePath))
+                    {
+                        File.Move(filePath, destFilePath);
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                throw e;
+            }
+        }
+        #endregion
+
+        #region public virtual async Task MoveFileToOutDirectoryAsync(string filePath)
+        /// <summary>
+        /// Przenieś plik do katalogu z plikami po poprawnym wykonaniu operacji asynchronicznie
+        /// Move the file to the directory with files after the correct operation asynchronously
+        /// </summary>
+        /// <param name="filePath">
+        /// Ścieżka do pliku jako string
+        /// File path as string
+        /// </param>
+        public virtual async Task MoveFileToOutDirectoryAsync(string filePath)
+        {
+            await Task.Run(() => {
+                MoveFileToOutDirectory(filePath);
+            });
+        }
+        #endregion
     }
     #endregion
 }
