@@ -11,12 +11,12 @@ namespace FileSystemWatcherCommon
     /// </summary>
     public abstract class FileSystemWatcherCommon : IFileSystemWatcherCommon
     {
-        #region private static readonly log4net.ILog _log4net
+        #region private static readonly log4net.ILog log4net
         /// <summary>
         /// Log4net Logger
         /// Log4net Logger
         /// </summary>
-        private static readonly log4net.ILog _log4net = Log4netLogger.Log4netLogger.GetLog4netInstance(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog log4net = Log4netLogger.Log4netLogger.GetLog4netInstance(MethodBase.GetCurrentMethod().DeclaringType);
         #endregion
 
         #region public virtual event EventHandler<FileSystemEventArgs> OnCreatedEventHandler;
@@ -101,7 +101,7 @@ namespace FileSystemWatcherCommon
                 }
                 else
                 {
-                    _log4net.Info($"Directory { path } do not exists!");
+                    log4net.Info($"Directory { path } do not exists!");
                 }
             }
         }
@@ -110,35 +110,35 @@ namespace FileSystemWatcherCommon
         public virtual void OnChanged(object source, FileSystemEventArgs e)
         {
             // Specify what is done when a file is changed.
-            _log4net.Info($"OnChanged file: {e.FullPath} {e.ChangeType}");
+            log4net.Info($"OnChanged file: {e.FullPath} {e.ChangeType}");
             OnChangedEventHandler?.Invoke(source, e);
         }
 
         public virtual void OnCreated(object source, FileSystemEventArgs e)
         {
             // Specify what is done when a file is created.
-            _log4net.Info($"OnCreated file: {e.FullPath} {e.ChangeType}");
+            log4net.Info($"OnCreated file: {e.FullPath} {e.ChangeType}");
             OnCreatedEventHandler?.Invoke(source, e);
         }
 
         public virtual void OnRenamed(object source, RenamedEventArgs e)
         {
             // Specify what is done when a file is renamed.
-            _log4net.Info($"OnRenamed file: {e.OldFullPath} renamed to {e.FullPath}");
+            log4net.Info($"OnRenamed file: {e.OldFullPath} renamed to {e.FullPath}");
             OnRenamedEventHandler?.Invoke(source, e);
         }
 
         public virtual void OnDeleted(object source, FileSystemEventArgs e)
         {
             // Specify what is done when a file is changed.
-            _log4net.Info($"OnDelete file: {e.FullPath} {e.ChangeType}");
+            log4net.Info($"OnDelete file: {e.FullPath} {e.ChangeType}");
             OnDeletedEventHandler?.Invoke(source, e);
         }
 
         public virtual void OnError(object source, ErrorEventArgs e)
         {
             // Specify what is error.
-            _log4net.Error($"Error { e.GetException().Message }, { e.GetException().StackTrace }", e.GetException());
+            log4net.Error($"Error { e.GetException().Message }, { e.GetException().StackTrace }", e.GetException());
             OnErrorEventHandler?.Invoke(source, e);
         }
     }
