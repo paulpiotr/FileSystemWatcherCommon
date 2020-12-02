@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FileSystemWatcherCommon
@@ -54,7 +55,7 @@ namespace FileSystemWatcherCommon
         public virtual event EventHandler<ErrorEventArgs> OnErrorEventHandler;
         #endregion
 
-        #region public virtual void Watch
+        #region public virtual void Watch...
         /// <summary>
         /// Obserwuj katalog z plikami i wykonaj odpowiednią akcję zdarzenia
         /// Watch the directory with files and perform the appropriate event action
@@ -78,6 +79,7 @@ namespace FileSystemWatcherCommon
                 if (Directory.Exists(path))
                 {
                     fileSystemWatcher.Path = path;
+                    fileSystemWatcher.InternalBufferSize = 64 * 1024;
                     fileSystemWatcher.NotifyFilter = notifyFilters;
                     if (null != filter && !string.IsNullOrWhiteSpace(filter))
                     {
@@ -95,7 +97,7 @@ namespace FileSystemWatcherCommon
                     fileSystemWatcher.EnableRaisingEvents = true;
                     while (true)
                     {
-                        ;
+                        Thread.Sleep(1000);
                     }
                 }
                 else
@@ -172,6 +174,16 @@ namespace FileSystemWatcherCommon
         }
         #endregion
 
+        public virtual void TimeoutFileAction<T>(Func<T> func, string filePath)
+        {
+            NetAppCommon.Helpers.Files.FileHelper.GetInstance().TimeoutAction(func, filePath);
+        }
+
+        public T TimeoutFileActionGet<T>(Func<T> func, string filePath)
+        {
+            return NetAppCommon.Helpers.Files.FileHelper.GetInstance().TimeoutActionReturn(func, filePath);
+        }
+
         #region public virtual string SetFileName(string filePath)
         /// <summary>
         /// Ustaw nową nazwę pliku do przeniesienia do innego katalogu
@@ -201,7 +213,7 @@ namespace FileSystemWatcherCommon
                             fileName = fileName.Replace(matchCollection[0].Value, string.Empty);
                         }
                         fileName = Regex.Replace(Regex.Replace(fileName, @"\.+", "."), @"\[+|\]+", string.Empty).Replace(Path.GetExtension(filePath), string.Empty);
-                        return string.Format("[{0}.{1}.{2}.{3}][{4}]{5}", DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second, DateTime.Now.Millisecond, fileName, Path.GetExtension(filePath));
+                        return string.Format("[{0}.{1}.{2}.{3}][{4}]{5}", DateTime.Now.ToString("HH"), DateTime.Now.Minute, DateTime.Now.Second, DateTime.Now.Millisecond, fileName, Path.GetExtension(filePath));
                     }
                 }
             }
@@ -334,6 +346,127 @@ namespace FileSystemWatcherCommon
         {
             await Task.Run(() => {
                 MoveFileToOutDirectory(filePath);
+            });
+        }
+        #endregion
+
+        #region public virtual void ReplaceFileToErrorDirectory(string filePath)
+        /// <summary>
+        /// Przenieś plik do katalogu z plikami po zarejestrowaniu błędu w migracji
+        /// Replace the file to the files directory after logging the migration error
+        /// </summary>
+        /// <param name="filePath">
+        /// Ścieżka do pliku jako string
+        /// File path as string
+        /// </param>
+        public virtual void ReplaceFileToErrorDirectory(string filePath)
+        {
+            try
+            {
+                if (null != filePath && !string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
+                {
+                    string destFileName = Path.GetFileName(filePath);
+                    string destinationBackupFileName = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "error", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), "backup", SetFileName(filePath));
+                    string destFilePath = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "error", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), destFileName);
+                    if (!Directory.Exists(Path.GetDirectoryName(destFilePath)))
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(destFilePath));
+                    }
+                    if (!Directory.Exists(Path.GetDirectoryName(destinationBackupFileName)))
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(destinationBackupFileName));
+                    }
+                    if (File.Exists(destFilePath))
+                    {
+                        File.Replace(filePath, destFilePath, destinationBackupFileName);
+                    }
+                    else
+                    {
+                        File.Move(filePath, destFilePath);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+        #endregion
+
+        #region public virtual async Task ReplaceFileToErrorDirectoryAsync(string filePath)
+        /// <summary>
+        /// Przenieś plik do katalogu z plikami po zarejestrowaniu błędu w migracji asynchronicznie
+        /// Replace the file to the files directory after logging the migration error asynchronously
+        /// </summary>
+        /// <param name="filePath">
+        /// Ścieżka do pliku jako string
+        /// File path as string
+        /// </param>
+        public virtual async Task ReplaceFileToErrorDirectoryAsync(string filePath)
+        {
+            await Task.Run(() =>
+            {
+                ReplaceFileToErrorDirectory(filePath);
+            });
+        }
+        #endregion
+
+        #region public virtual void ReplaceFileToOutDirectory(string filePath)
+        /// <summary>
+        /// Przenieś plik do katalogu z plikami po poprawnym wykonaniu operacji
+        /// Replace the file to the directory with files after the correct operation
+        /// </summary>
+        /// <param name="filePath">
+        /// Ścieżka do pliku jako string
+        /// File path as string
+        /// </param>
+        public virtual void ReplaceFileToOutDirectory(string filePath)
+        {
+            try
+            {
+                if (null != filePath && !string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
+                {
+                    string destFileName = Path.GetFileName(filePath);
+                    string destinationBackupFileName = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "error", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), "backup", SetFileName(filePath));
+                    string destFilePath = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "out", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), destFileName);
+                    if (!Directory.Exists(Path.GetDirectoryName(destFilePath)))
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(destFilePath));
+                    }
+                    if (!Directory.Exists(Path.GetDirectoryName(destinationBackupFileName)))
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(destinationBackupFileName));
+                    }
+                    if (File.Exists(destFilePath))
+                    {
+                        File.Replace(filePath, destFilePath, destinationBackupFileName);
+                    }
+                    else
+                    {
+                        File.Move(filePath, destFilePath);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+        #endregion
+
+        #region public virtual async Task ReplaceFileToOutDirectoryAsync(string filePath)
+        /// <summary>
+        /// Przenieś plik do katalogu z plikami po poprawnym wykonaniu operacji asynchronicznie
+        /// Replace the file to the directory with files after the correct operation asynchronously
+        /// </summary>
+        /// <param name="filePath">
+        /// Ścieżka do pliku jako string
+        /// File path as string
+        /// </param>
+        public virtual async Task ReplaceFileToOutDirectoryAsync(string filePath)
+        {
+            await Task.Run(() => {
+                ReplaceFileToOutDirectory(filePath);
             });
         }
         #endregion
