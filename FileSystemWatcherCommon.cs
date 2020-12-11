@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -203,10 +203,10 @@ namespace FileSystemWatcherCommon
             {
                 if (null != filePath && !string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
                 {
-                    string fileName = Path.GetFileName(filePath);
+                    var fileName = Path.GetFileName(filePath);
                     if (null != fileName && !string.IsNullOrWhiteSpace(fileName))
                     {
-                        string pattern = @"\[(.*?)\]\.?";
+                        var pattern = @"\[(.*?)\]\.?";
                         MatchCollection matchCollection = Regex.Matches(fileName, pattern);
                         if (null != matchCollection && matchCollection.Count >= 2 && null != matchCollection[0].Value && !string.IsNullOrWhiteSpace(matchCollection[0].Value))
                         {
@@ -219,7 +219,7 @@ namespace FileSystemWatcherCommon
             }
             catch (Exception e)
             {
-                throw e;
+                //throw e;
             }
             return null;
         }
@@ -262,8 +262,8 @@ namespace FileSystemWatcherCommon
             {
                 if (null != filePath && !string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
                 {
-                    string destFileName = SetFileName(filePath);
-                    string destFilePath = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "error", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), destFileName);
+                    var destFileName = SetFileName(filePath);
+                    var destFilePath = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "error", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), destFileName);
                     if (!Directory.Exists(Path.GetDirectoryName(destFilePath)))
                     {
                         Directory.CreateDirectory(Path.GetDirectoryName(destFilePath));
@@ -276,7 +276,7 @@ namespace FileSystemWatcherCommon
             }
             catch(Exception e)
             {
-                throw e;
+                //throw e;
             }
         }
         #endregion
@@ -314,8 +314,8 @@ namespace FileSystemWatcherCommon
             {
                 if (null != filePath && !string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
                 {
-                    string destFileName = SetFileName(filePath);
-                    string destFilePath = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "out", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), destFileName);
+                    var destFileName = SetFileName(filePath);
+                    var destFilePath = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "out", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), destFileName);
                     if (!Directory.Exists(Path.GetDirectoryName(destFilePath)))
                     {
                         Directory.CreateDirectory(Path.GetDirectoryName(destFilePath));
@@ -328,7 +328,7 @@ namespace FileSystemWatcherCommon
             }
             catch(Exception e)
             {
-                throw e;
+                //throw e;
             }
         }
         #endregion
@@ -365,9 +365,9 @@ namespace FileSystemWatcherCommon
             {
                 if (null != filePath && !string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
                 {
-                    string destFileName = Path.GetFileName(filePath);
-                    string destinationBackupFileName = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "error", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), "backup", SetFileName(filePath));
-                    string destFilePath = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "error", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), destFileName);
+                    var destFileName = Path.GetFileName(filePath);
+                    var destinationBackupFileName = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "error", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), "backup", SetFileName(filePath));
+                    var destFilePath = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "error", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), destFileName);
                     if (!Directory.Exists(Path.GetDirectoryName(destFilePath)))
                     {
                         Directory.CreateDirectory(Path.GetDirectoryName(destFilePath));
@@ -388,7 +388,7 @@ namespace FileSystemWatcherCommon
             }
             catch (Exception e)
             {
-                throw e;
+                //throw e;
             }
         }
         #endregion
@@ -426,9 +426,9 @@ namespace FileSystemWatcherCommon
             {
                 if (null != filePath && !string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
                 {
-                    string destFileName = Path.GetFileName(filePath);
-                    string destinationBackupFileName = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "error", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), "backup", SetFileName(filePath));
-                    string destFilePath = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "out", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), destFileName);
+                    var destFileName = Path.GetFileName(filePath);
+                    var destinationBackupFileName = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "error", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), "backup", SetFileName(filePath));
+                    var destFilePath = Path.Combine(Path.GetDirectoryName(filePath), string.Format("{0}{1}", @"..", Path.DirectorySeparatorChar.ToString()), "out", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString(), destFileName);
                     if (!Directory.Exists(Path.GetDirectoryName(destFilePath)))
                     {
                         Directory.CreateDirectory(Path.GetDirectoryName(destFilePath));
@@ -449,7 +449,7 @@ namespace FileSystemWatcherCommon
             }
             catch (Exception e)
             {
-                throw e;
+                //throw e;
             }
         }
         #endregion
