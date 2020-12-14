@@ -74,7 +74,7 @@ namespace FileSystemWatcherCommon
         /// </param>
         public virtual void Watch(string path, NotifyFilters notifyFilters = NotifyFilters.Attributes | NotifyFilters.CreationTime | NotifyFilters.DirectoryName | NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.Security | NotifyFilters.Size, string filter = null)
         {
-            using (FileSystemWatcher fileSystemWatcher = new FileSystemWatcher())
+            using (var fileSystemWatcher = new FileSystemWatcher())
             {
                 if (Directory.Exists(path))
                 {
