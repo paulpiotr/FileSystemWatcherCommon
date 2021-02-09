@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -97,6 +96,7 @@ namespace FileSystemWatcherCommon
                     fileSystemWatcher.EnableRaisingEvents = true;
                     while (true)
                     {
+                        //Console.WriteLine($"Watch ({ path })");
                         Thread.Sleep(1000);
                     }
                 }
@@ -219,7 +219,7 @@ namespace FileSystemWatcherCommon
             }
             catch (Exception e)
             {
-                //throw e;
+                Console.WriteLine(e);
             }
             return null;
         }
@@ -274,9 +274,9 @@ namespace FileSystemWatcherCommon
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                //throw e;
+                Console.WriteLine(e);
             }
         }
         #endregion
@@ -326,9 +326,9 @@ namespace FileSystemWatcherCommon
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                //throw e;
+                Console.WriteLine(e);
             }
         }
         #endregion
@@ -344,7 +344,8 @@ namespace FileSystemWatcherCommon
         /// </param>
         public virtual async Task MoveFileToOutDirectoryAsync(string filePath)
         {
-            await Task.Run(() => {
+            await Task.Run(() =>
+            {
                 MoveFileToOutDirectory(filePath);
             });
         }
@@ -388,7 +389,7 @@ namespace FileSystemWatcherCommon
             }
             catch (Exception e)
             {
-                //throw e;
+                Console.WriteLine(e);
             }
         }
         #endregion
@@ -449,7 +450,7 @@ namespace FileSystemWatcherCommon
             }
             catch (Exception e)
             {
-                //throw e;
+                Console.WriteLine(e);
             }
         }
         #endregion
@@ -465,7 +466,8 @@ namespace FileSystemWatcherCommon
         /// </param>
         public virtual async Task ReplaceFileToOutDirectoryAsync(string filePath)
         {
-            await Task.Run(() => {
+            await Task.Run(() =>
+            {
                 ReplaceFileToOutDirectory(filePath);
             });
         }
