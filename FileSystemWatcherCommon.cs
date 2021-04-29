@@ -71,40 +71,37 @@ namespace FileSystemWatcherCommon
         /// Filtry rozszerzeń plików
         /// Filters of file extensions
         /// </param>
-        public virtual void Watch(string path, NotifyFilters notifyFilters = NotifyFilters.Attributes | NotifyFilters.CreationTime | NotifyFilters.DirectoryName | NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.Security | NotifyFilters.Size, string filter = null, bool includeSubdirectories = false)
+        public virtual void Watch(string path, NotifyFilters notifyFilters = NotifyFilters.Attributes | NotifyFilters.CreationTime | NotifyFilters.DirectoryName | NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.Security | NotifyFilters.Size, string filter = null)
         {
-            using (var fileSystemWatcher = new FileSystemWatcher())
+            using var fileSystemWatcher = new FileSystemWatcher();
+            if (Directory.Exists(path))
             {
-                if (Directory.Exists(path))
+                fileSystemWatcher.Path = path;
+                fileSystemWatcher.InternalBufferSize = 64 * 1024;
+                fileSystemWatcher.NotifyFilter = notifyFilters;
+                if (null != filter && !string.IsNullOrWhiteSpace(filter))
                 {
-                    fileSystemWatcher.Path = path;
-                    fileSystemWatcher.InternalBufferSize = 64 * 1024;
-                    fileSystemWatcher.NotifyFilter = notifyFilters;
-                    if (null != filter && !string.IsNullOrWhiteSpace(filter))
+                    List<string> filterList = NetAppCommon.Helpers.Lists.ListsHelper.GetInstance().ConvertToListOfString(filter, new char[] { ',', ';', '|' });
+                    if (!(null != filterList && filterList.Count > 0))
                     {
-                        List<string> filterList = NetAppCommon.Helpers.Lists.ListsHelper.GetInstance().ConvertToListOfString(filter, new[] { ',', ';', '|' });
-                        if (!(null != filterList && filterList.Count > 0))
-                        {
-                            fileSystemWatcher.Filter = filter;
-                        }
-                    }
-                    fileSystemWatcher.Created += OnCreated;
-                    fileSystemWatcher.Changed += OnChanged;
-                    fileSystemWatcher.Renamed += OnRenamed;
-                    fileSystemWatcher.Deleted += OnDeleted;
-                    fileSystemWatcher.Error += OnError;
-                    fileSystemWatcher.IncludeSubdirectories = includeSubdirectories;
-                    fileSystemWatcher.EnableRaisingEvents = true;
-                    while (true)
-                    {
-                        //Console.WriteLine($"Watch ({ path })");
-                        Thread.Sleep(1000);
+                        fileSystemWatcher.Filter = filter;
                     }
                 }
-                else
+                fileSystemWatcher.Created += OnCreated;
+                fileSystemWatcher.Changed += OnChanged;
+                fileSystemWatcher.Renamed += OnRenamed;
+                fileSystemWatcher.Deleted += OnDeleted;
+                fileSystemWatcher.Error += OnError;
+                fileSystemWatcher.EnableRaisingEvents = true;
+                while (true)
                 {
-                    throw new Exception($"Directory { path } do not exists!");
+                    //Console.WriteLine($"Watch ({ path })");
+                    Thread.Sleep(1000);
                 }
+            }
+            else
+            {
+                throw new Exception($"Directory { path } do not exists!");
             }
         }
         #endregion
