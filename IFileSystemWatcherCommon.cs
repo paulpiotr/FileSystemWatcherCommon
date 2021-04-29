@@ -6,7 +6,7 @@ namespace FileSystemWatcherCommon
 {
     public interface IFileSystemWatcherCommon
     {
-        void Watch(string path, NotifyFilters notifyFilters = NotifyFilters.Attributes | NotifyFilters.CreationTime | NotifyFilters.DirectoryName | NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.Security | NotifyFilters.Size, string filter = null);
+        void Watch(string path, NotifyFilters notifyFilters = NotifyFilters.Attributes | NotifyFilters.CreationTime | NotifyFilters.DirectoryName | NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.Security | NotifyFilters.Size, string filter = null, bool includeSubdirectories = false);
         void OnCreated(object source, FileSystemEventArgs e);
         void OnDeleted(object source, FileSystemEventArgs e);
         void OnChanged(object source, FileSystemEventArgs e);
