@@ -71,7 +71,7 @@ namespace FileSystemWatcherCommon
         /// Filtry rozszerzeń plików
         /// Filters of file extensions
         /// </param>
-        public virtual void Watch(string path, NotifyFilters notifyFilters = NotifyFilters.Attributes | NotifyFilters.CreationTime | NotifyFilters.DirectoryName | NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.Security | NotifyFilters.Size, string filter = null)
+        public virtual void Watch(string path, NotifyFilters notifyFilters = NotifyFilters.Attributes | NotifyFilters.CreationTime | NotifyFilters.DirectoryName | NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.Security | NotifyFilters.Size, string filter = null, bool includeSubdirectories = false)
         {
             using var fileSystemWatcher = new FileSystemWatcher();
             if (Directory.Exists(path))
